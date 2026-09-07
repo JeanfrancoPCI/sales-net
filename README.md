@@ -16,7 +16,7 @@ SalesNET/
 │   └── Interfaces/                # Contratos: ICategoriaRepository, IProductoRepository, IClienteRepository, IOrdenRepository
 │
 ├── SalesNET.Api/                 # API Web (ASP.NET Core)
-│   ├── Controllers/               # CategoriasController, ProductosController, ClientesController
+│   ├── Controllers/               # CategoriasController, ProductosController, ClientesController, OrdenesController
 │   ├── Repositories/
 │   │   ├── ADO/                   # Implementación con ADO.NET puro (SqlConnection, SqlCommand, SqlParameter)
 │   │   ├── Dapper/                # Implementación con Dapper (DynamicParameters, QueryAsync, ExecuteAsync)
@@ -120,16 +120,27 @@ Todas las rutas siguen el patrón `api/{proveedor}/{recurso}`, donde `{proveedor
 - `PUT /` — actualizar cliente
 - `DELETE /{clienteId}` — baja lógica
 
+### Órdenes (`api/{proveedor}/ordenes`)
+- `GET /?clienteId=&fechaInicio=&fechaFin=` — listar (con filtros opcionales)
+- `GET /{ordenId}` — obtener por ID (incluye sus detalles)
+- `GET /{ordenId}/detalles` — detalle de productos de la orden
+- `POST /` — crear orden (requiere `ClienteID` y al menos un elemento en `Detalles`, cada uno con `ProductoID` y `Cantidad`)
+- `PUT /{ordenId}/productos/{productoId}?cantidad=` — agrega, actualiza o quita (con `cantidad=0`) un producto de la orden; no permite quitar el último producto
+- `DELETE /{ordenId}` — baja lógica
+
 ### Ejemplo (curl)
 
 ```bash
 curl http://localhost:5xxx/api/efcore/productos?categoriaId=1
+
 curl -X POST http://localhost:5xxx/api/dapper/clientes \
   -H "Content-Type: application/json" \
   -d '{"nombre":"Juan Perez","email":"juan@mail.com","telefono":"999999999"}'
-```
 
-> Órdenes (`IOrdenRepository`) ya tiene sus tres implementaciones (ADO.NET, Dapper, EF Core) registradas en `Program.cs`, pero todavía no cuenta con un controller HTTP — ver sección de pendientes.
+curl -X POST http://localhost:5xxx/api/adonet/ordenes \
+  -H "Content-Type: application/json" \
+  -d '{"clienteID":1,"detalles":[{"productoID":1,"cantidad":2}]}'
+```
 
 ## Pruebas
 
@@ -139,7 +150,17 @@ dotnet test
 
 Las pruebas de `SalesNET.Tests` usan `WebApplicationFactory<Program>` para levantar la API en memoria y son autocontenidas: cada prueba crea sus propios datos (por ejemplo, una categoría propia) en lugar de depender de la data semilla, para poder ejecutarse en cualquier orden y contra cualquier base de datos limpia.
 
+## Manejo de errores
+
+Además del patrón `ResultadoOperacion` (que ya cubre resultados de negocio esperados como duplicados o registros inexistentes, devueltos por los repositorios con `Exito`/`Mensaje`), la API cuenta con un manejador global de excepciones (`SalesNET.Api/Middleware/GlobalExceptionHandler.cs`, vía `IExceptionHandler` + `app.UseExceptionHandler()`) para errores técnicos inesperados que antes se propagaban sin control hasta convertirse en un `500` genérico:
+
+- `SqlException` (falla de conexión a SQL Server) → `503 Service Unavailable`
+- `DbUpdateConcurrencyException` (el registro fue modificado/eliminado por otro proceso) → `409 Conflict`
+- `DbUpdateException` (error de EF Core al guardar) → `500 Internal Server Error`
+- Cualquier otra excepción no controlada → `500 Internal Server Error`
+
+Todas se devuelven en formato [ProblemDetails](https://datatracker.ietf.org/doc/html/rfc7807) (`{ status, title, detail }`), y el detalle completo de la excepción se registra con `ILogger` en el servidor, nunca se expone al cliente.
+
 ## Pendientes / próximos pasos
 
-- Crear `OrdenesController` para exponer `IOrdenRepository` vía HTTP.
-- Evaluar una base común para los controllers que elimine la duplicación de la validación del `{proveedor}` (clase base genérica, filtro de acción, o resolución con excepción + manejo global de excepciones).
+- Evaluar una base común para los controllers que elimine la duplicación de la validación del `{proveedor}` (clase base genérica, filtro de acción, o resolución con excepción).

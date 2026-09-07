@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SalesNET.Api.Data;
+using SalesNET.Api.Middleware;
 using SalesNET.Api.Repositories.ADO;
 using SalesNET.Api.Repositories.Dapper;
 using SalesNET.Api.Repositories.EFCore;
@@ -12,6 +13,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddDbContext<SalesBDContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -30,6 +34,8 @@ builder.Services.AddKeyedScoped<IProductoRepository, ProductoRepositoryDapper>("
 builder.Services.AddKeyedScoped<IProductoRepository, ProductoRepositoryEfCore>("efcore");
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
