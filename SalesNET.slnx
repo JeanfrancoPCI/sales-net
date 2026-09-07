@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SalesNET.Api/SalesNET.Api.csproj" />
+  <Project Path="SalesNET.Domain/SalesNET.Domain.csproj" />
+  <Project Path="SalesNET.Tests/SalesNET.Tests.csproj" />
+</Solution>
