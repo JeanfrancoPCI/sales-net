@@ -23,6 +23,10 @@ SalesNET/
 │   │   └── EFCore/                # Implementación con Entity Framework Core (LINQ sobre SalesBDContext)
 │   ├── Data/
 │   │   └── SalesBDContext.cs      # DbContext y configuración Fluent API
+│   ├── Exceptions/
+│   │   └── ProveedorNoValidoException.cs  # Excepción propia para un {proveedor} inválido en la ruta
+│   ├── Middleware/
+│   │   └── GlobalExceptionHandler.cs      # Manejador global de excepciones (IExceptionHandler)
 │   ├── Program.cs                 # Registro de servicios y de los tres proveedores por entidad
 │   └── appsettings*.json          # Configuración (la cadena de conexión va en appsettings.Development.json, no versionado)
 │
@@ -152,15 +156,12 @@ Las pruebas de `SalesNET.Tests` usan `WebApplicationFactory<Program>` para levan
 
 ## Manejo de errores
 
-Además del patrón `ResultadoOperacion` (que ya cubre resultados de negocio esperados como duplicados o registros inexistentes, devueltos por los repositorios con `Exito`/`Mensaje`), la API cuenta con un manejador global de excepciones (`SalesNET.Api/Middleware/GlobalExceptionHandler.cs`, vía `IExceptionHandler` + `app.UseExceptionHandler()`) para errores técnicos inesperados que antes se propagaban sin control hasta convertirse en un `500` genérico:
+Además del patrón `ResultadoOperacion` (que ya cubre resultados de negocio esperados como duplicados o registros inexistentes, devueltos por los repositorios con `Exito`/`Mensaje`), la API cuenta con un manejador global de excepciones (`SalesNET.Api/Middleware/GlobalExceptionHandler.cs`, vía `IExceptionHandler` + `app.UseExceptionHandler()`) para dos tipos de situaciones que no son reglas de negocio de ninguna entidad:
 
+- `ProveedorNoValidoException` (el segmento `{proveedor}` de la ruta no es `adonet`, `dapper` ni `efcore`) → `400 Bad Request`. Cada controller resuelve el repositorio en un único método `ObtenerRepositorio(proveedor)` que lanza esta excepción si el proveedor no es válido, en vez de repetir un `if (repo is null) return BadRequest(...)` en cada acción.
 - `SqlException` (falla de conexión a SQL Server) → `503 Service Unavailable`
 - `DbUpdateConcurrencyException` (el registro fue modificado/eliminado por otro proceso) → `409 Conflict`
 - `DbUpdateException` (error de EF Core al guardar) → `500 Internal Server Error`
 - Cualquier otra excepción no controlada → `500 Internal Server Error`
 
 Todas se devuelven en formato [ProblemDetails](https://datatracker.ietf.org/doc/html/rfc7807) (`{ status, title, detail }`), y el detalle completo de la excepción se registra con `ILogger` en el servidor, nunca se expone al cliente.
-
-## Pendientes / próximos pasos
-
-- Evaluar una base común para los controllers que elimine la duplicación de la validación del `{proveedor}` (clase base genérica, filtro de acción, o resolución con excepción).

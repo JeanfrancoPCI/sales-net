@@ -2,16 +2,21 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using SalesNET.Api.Exceptions;
 
 namespace SalesNET.Api.Middleware
 {
     /// <summary>
     /// Captura cualquier excepción no controlada que se escape de los controllers
-    /// (fallas de conexión a SQL Server, errores de EF Core al guardar, etc.) y la
-    /// traduce a una respuesta HTTP consistente en formato ProblemDetails.
+    /// (fallas de conexión a SQL Server, errores de EF Core al guardar, un {proveedor}
+    /// inválido en la ruta, etc.) y la traduce a una respuesta HTTP consistente en
+    /// formato ProblemDetails.
     ///
-    /// Este handler cubre únicamente errores técnicos inesperados que hoy se propagan
-    /// sin control hasta convertirse en un 500 genérico de ASP.NET Core.
+    /// No reemplaza el patrón ResultadoOperacion: ese sigue manejando los resultados
+    /// de negocio esperados (duplicados, no-existe, etc.) devueltos por los repositorios.
+    /// Este handler cubre validaciones de infraestructura (proveedor inválido) y
+    /// errores técnicos inesperados que antes se propagaban sin control hasta
+    /// convertirse en un 500 genérico de ASP.NET Core.
     /// </summary>
     public class GlobalExceptionHandler : IExceptionHandler
     {
@@ -30,6 +35,11 @@ namespace SalesNET.Api.Middleware
 
             var (statusCode, titulo, detalle) = exception switch
             {
+                ProveedorNoValidoException => (
+                    StatusCodes.Status400BadRequest,
+                    "Proveedor no válido",
+                    exception.Message),
+
                 SqlException => (
                     StatusCodes.Status503ServiceUnavailable,
                     "Error de base de datos",

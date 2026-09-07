@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SalesNET.Api.Exceptions;
 using SalesNET.Domain.DTOs;
 using SalesNET.Domain.Interfaces;
 
@@ -16,9 +17,13 @@ namespace SalesNET.Api.Controllers
             _serviceProvider = serviceProvider;
         }
 
-        private IOrdenRepository? ObtenerRepositorio(string proveedor)
+        private IOrdenRepository ObtenerRepositorio(string proveedor)
         {
-            if (!ProveedoresValidos.Contains(proveedor)) return null;
+            if (!ProveedoresValidos.Contains(proveedor))
+            {
+                throw new ProveedorNoValidoException(proveedor, ProveedoresValidos);
+            }
+
             return _serviceProvider.GetRequiredKeyedService<IOrdenRepository>(proveedor);
         }
 
@@ -26,7 +31,6 @@ namespace SalesNET.Api.Controllers
         public async Task<IActionResult> ObtenerOrdenes(string proveedor, [FromQuery] int? clienteId, [FromQuery] DateTime? fechaInicio, [FromQuery] DateTime? fechaFin)
         {
             var repo = ObtenerRepositorio(proveedor);
-            if (repo is null) return BadRequest($"Proveedor '{proveedor}' no válido. Usa: {string.Join(", ", ProveedoresValidos)}.");
 
             var ordenes = await repo.ObtenerOrdenesAsync(clienteId, fechaInicio, fechaFin);
             return Ok(ordenes);
@@ -36,7 +40,6 @@ namespace SalesNET.Api.Controllers
         public async Task<IActionResult> ObtenerOrdenPorId(string proveedor, int ordenId)
         {
             var repo = ObtenerRepositorio(proveedor);
-            if (repo is null) return BadRequest($"Proveedor '{proveedor}' no válido. Usa: {string.Join(", ", ProveedoresValidos)}.");
 
             var orden = await repo.ObtenerOrdenPorIdAsync(ordenId);
             return orden is null ? NotFound($"No se encontró la orden con ID {ordenId}.") : Ok(orden);
@@ -46,7 +49,6 @@ namespace SalesNET.Api.Controllers
         public async Task<IActionResult> ObtenerDetallesOrden(string proveedor, int ordenId)
         {
             var repo = ObtenerRepositorio(proveedor);
-            if (repo is null) return BadRequest($"Proveedor '{proveedor}' no válido. Usa: {string.Join(", ", ProveedoresValidos)}.");
 
             var detalles = await repo.ObtenerDetallesOrdenAsync(ordenId);
             return Ok(detalles);
@@ -56,7 +58,6 @@ namespace SalesNET.Api.Controllers
         public async Task<IActionResult> CrearOrden(string proveedor, [FromBody] OrdenDto orden)
         {
             var repo = ObtenerRepositorio(proveedor);
-            if (repo is null) return BadRequest($"Proveedor '{proveedor}' no válido. Usa: {string.Join(", ", ProveedoresValidos)}.");
 
             var resultado = await repo.CrearOrdenAsync(orden);
             return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
@@ -66,7 +67,6 @@ namespace SalesNET.Api.Controllers
         public async Task<IActionResult> ActualizarProductoOrden(string proveedor, int ordenId, int productoId, [FromQuery] int cantidad)
         {
             var repo = ObtenerRepositorio(proveedor);
-            if (repo is null) return BadRequest($"Proveedor '{proveedor}' no válido. Usa: {string.Join(", ", ProveedoresValidos)}.");
 
             var resultado = await repo.ActualizarProductoOrdenAsync(ordenId, productoId, cantidad);
             return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
@@ -76,7 +76,6 @@ namespace SalesNET.Api.Controllers
         public async Task<IActionResult> EliminarOrden(string proveedor, int ordenId)
         {
             var repo = ObtenerRepositorio(proveedor);
-            if (repo is null) return BadRequest($"Proveedor '{proveedor}' no válido. Usa: {string.Join(", ", ProveedoresValidos)}.");
 
             var resultado = await repo.EliminarOrdenAsync(ordenId);
             return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
