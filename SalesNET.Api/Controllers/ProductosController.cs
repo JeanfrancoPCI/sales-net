@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using SalesNET.Api.Exceptions;
+using SalesNET.Api.Services;
 using SalesNET.Domain.DTOs;
 using SalesNET.Domain.Interfaces;
 
@@ -9,28 +9,17 @@ namespace SalesNET.Api.Controllers
     [Route("api/{proveedor}/productos")]
     public class ProductosController : ControllerBase
     {
-        private readonly IServiceProvider _serviceProvider;
-        private static readonly string[] ProveedoresValidos = { "adonet", "efcore", "dapper" };
+        private readonly RepositorioProveedor<IProductoRepository> _repositorioProveedor;
 
-        public ProductosController(IServiceProvider serviceProvider)
+        public ProductosController(RepositorioProveedor<IProductoRepository> repositorioProveedor)
         {
-            _serviceProvider = serviceProvider;
-        }
-
-        private IProductoRepository ObtenerRepositorio(string proveedor)
-        {
-            if (!ProveedoresValidos.Contains(proveedor))
-            {
-                throw new ProveedorNoValidoException(proveedor, ProveedoresValidos);
-            }
-
-            return _serviceProvider.GetRequiredKeyedService<IProductoRepository>(proveedor);
+            _repositorioProveedor = repositorioProveedor;
         }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerProductos(string proveedor, [FromQuery] int? categoriaId, [FromQuery] string? nombre)
         {
-            var repo = ObtenerRepositorio(proveedor);
+            var repo = _repositorioProveedor.Resolver(proveedor);
 
             var productos = await repo.ObtenerProductosAsync(categoriaId, nombre);
             return Ok(productos);
@@ -39,7 +28,7 @@ namespace SalesNET.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CrearProducto(string proveedor, [FromBody] ProductoDto producto)
         {
-            var repo = ObtenerRepositorio(proveedor);
+            var repo = _repositorioProveedor.Resolver(proveedor);
 
             var resultado = await repo.CrearProductoAsync(producto);
             return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
@@ -48,7 +37,7 @@ namespace SalesNET.Api.Controllers
         [HttpPut]
         public async Task<IActionResult> ActualizarProducto(string proveedor, [FromBody] ProductoDto producto)
         {
-            var repo = ObtenerRepositorio(proveedor);
+            var repo = _repositorioProveedor.Resolver(proveedor);
 
             var resultado = await repo.ActualizarProductoAsync(producto);
             return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
@@ -57,7 +46,7 @@ namespace SalesNET.Api.Controllers
         [HttpDelete("{productoId:int}")]
         public async Task<IActionResult> EliminarProducto(string proveedor, int productoId)
         {
-            var repo = ObtenerRepositorio(proveedor);
+            var repo = _repositorioProveedor.Resolver(proveedor);
 
             var resultado = await repo.EliminarProductoAsync(productoId);
             return resultado.Exito ? Ok(resultado) : BadRequest(resultado);

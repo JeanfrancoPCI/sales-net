@@ -4,6 +4,7 @@ using SalesNET.Api.Middleware;
 using SalesNET.Api.Repositories.ADO;
 using SalesNET.Api.Repositories.Dapper;
 using SalesNET.Api.Repositories.EFCore;
+using SalesNET.Api.Services;
 using SalesNET.Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,8 @@ builder.Services.AddKeyedScoped<IOrdenRepository, OrdenRepositoryEfCore>("efcore
 builder.Services.AddKeyedScoped<IProductoRepository, ProductoRepositoryAdoNet>("adonet");
 builder.Services.AddKeyedScoped<IProductoRepository, ProductoRepositoryDapper>("dapper");
 builder.Services.AddKeyedScoped<IProductoRepository, ProductoRepositoryEfCore>("efcore");
+
+builder.Services.AddScoped(typeof(RepositorioProveedor<>));
 
 var app = builder.Build();
 

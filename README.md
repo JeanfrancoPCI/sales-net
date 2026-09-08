@@ -21,6 +21,8 @@ SalesNET/
 │   │   ├── ADO/                   # Implementación con ADO.NET puro (SqlConnection, SqlCommand, SqlParameter)
 │   │   ├── Dapper/                # Implementación con Dapper (DynamicParameters, QueryAsync, ExecuteAsync)
 │   │   └── EFCore/                # Implementación con Entity Framework Core (LINQ sobre SalesBDContext)
+│   ├── Services/
+│   │   └── RepositorioProveedor.cs        # Resuelve el repositorio keyed según {proveedor} y valida que sea válido
 │   ├── Data/
 │   │   └── SalesBDContext.cs      # DbContext y configuración Fluent API
 │   ├── Exceptions/
@@ -54,11 +56,24 @@ builder.Services.AddKeyedScoped<IClienteRepository, ClienteRepositoryDapper>("da
 builder.Services.AddKeyedScoped<IClienteRepository, ClienteRepositoryEfCore>("efcore");
 ```
 
-Cada controller recibe un `IServiceProvider` y resuelve la implementación correcta según el segmento `{proveedor}` de la ruta:
+La resolución de la implementación correcta según el segmento `{proveedor}` de la ruta está centralizada en `RepositorioProveedor<TRepository>` (`SalesNET.Api/Services/RepositorioProveedor.cs`), una clase genérica registrada una sola vez en `Program.cs` (`AddScoped(typeof(RepositorioProveedor<>))`). Cada controller la inyecta con el tipo de repositorio que le corresponde:
 
 ```csharp
-var repo = _serviceProvider.GetRequiredKeyedService<IClienteRepository>(proveedor);
+public class ClientesController : ControllerBase
+{
+    private readonly RepositorioProveedor<IClienteRepository> _repositorioProveedor;
+
+    public ClientesController(RepositorioProveedor<IClienteRepository> repositorioProveedor)
+    {
+        _repositorioProveedor = repositorioProveedor;
+    }
+
+    // ...
+    var repo = _repositorioProveedor.Resolver(proveedor);
+}
 ```
+
+`RepositorioProveedor` valida que `proveedor` sea uno de los registrados (lanzando `ProveedorNoValidoException` si no) y resuelve el keyed service internamente con `IServiceProvider.GetRequiredKeyedService`. Esto evita que cada controller repita la validación y el acceso directo al contenedor de DI (equivalente al anti-patrón *Service Locator*).
 
 Esto permite invocar exactamente la misma operación de negocio con las tres tecnologías, cambiando solo la URL: `/api/adonet/clientes`, `/api/dapper/clientes`, `/api/efcore/clientes`.
 
@@ -158,7 +173,7 @@ Las pruebas de `SalesNET.Tests` usan `WebApplicationFactory<Program>` para levan
 
 Además del patrón `ResultadoOperacion` (que ya cubre resultados de negocio esperados como duplicados o registros inexistentes, devueltos por los repositorios con `Exito`/`Mensaje`), la API cuenta con un manejador global de excepciones (`SalesNET.Api/Middleware/GlobalExceptionHandler.cs`, vía `IExceptionHandler` + `app.UseExceptionHandler()`) para dos tipos de situaciones que no son reglas de negocio de ninguna entidad:
 
-- `ProveedorNoValidoException` (el segmento `{proveedor}` de la ruta no es `adonet`, `dapper` ni `efcore`) → `400 Bad Request`. Cada controller resuelve el repositorio en un único método `ObtenerRepositorio(proveedor)` que lanza esta excepción si el proveedor no es válido, en vez de repetir un `if (repo is null) return BadRequest(...)` en cada acción.
+- `ProveedorNoValidoException` (el segmento `{proveedor}` de la ruta no es `adonet`, `dapper` ni `efcore`) → `400 Bad Request`. La lanza `RepositorioProveedor<TRepository>.Resolver(proveedor)` (`SalesNET.Api/Services/RepositorioProveedor.cs`), usado por los 4 controllers en vez de repetir la validación en cada uno.
 - `SqlException` (falla de conexión a SQL Server) → `503 Service Unavailable`
 - `DbUpdateConcurrencyException` (el registro fue modificado/eliminado por otro proceso) → `409 Conflict`
 - `DbUpdateException` (error de EF Core al guardar) → `500 Internal Server Error`
