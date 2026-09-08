@@ -183,9 +183,6 @@ namespace SalesNET.Api.Repositories.ADO
 
         public async Task<IEnumerable<OrdenDto>> ObtenerOrdenesPorClienteAsync(int clienteId)
         {
-            // Reutilizamos SP_LISTAR_ORDENES (el mismo que usa OrdenRepositoryAdoNet) filtrando
-            // por @ClienteID, en vez de un SP propio que nunca llegó a crearse
-            // (SP_OBTENER_ORDENES_POR_CLIENTE no existe en ningún script).
             var ordenes = new List<OrdenDto>();
 
             await using var connection = new SqlConnection(_connectionString);

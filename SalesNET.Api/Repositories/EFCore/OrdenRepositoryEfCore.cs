@@ -208,8 +208,6 @@ namespace SalesNET.Api.Repositories.EFCore
             var query = _context.Ordenes
                 .Include(o => o.Cliente)
                 .Include(o => o.Detalles)
-                // SP_LISTAR_ORDENES usa INNER JOIN OrdenDetalle, así que excluimos órdenes sin
-                // detalle (no debería pasar por las reglas de negocio, pero mantiene la paridad).
                 .Where(o => o.Detalles.Any())
                 .AsQueryable();
 

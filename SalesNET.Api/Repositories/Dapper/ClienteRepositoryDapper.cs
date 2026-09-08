@@ -22,8 +22,6 @@ namespace SalesNET.Api.Repositories.Dapper
 
         public async Task<IEnumerable<ClienteDto>> ObtenerClientesAsync()
         {
-            // Igual que en ADO.NET: SQL parametrizado directo, sin SP, por decisión explícita
-            // (no hay SP_LISTAR_CLIENTES a propósito, para practicar la variante sin SP).
             const string query =
                 @"SELECT ClienteID, Nombre, Email, Telefono, Activo, FechaCreacion, FechaModificacion
                 FROM Clientes
@@ -115,9 +113,6 @@ namespace SalesNET.Api.Repositories.Dapper
 
         public async Task<IEnumerable<OrdenDto>> ObtenerOrdenesPorClienteAsync(int clienteId)
         {
-            // Reutilizamos SP_LISTAR_ORDENES filtrando por @ClienteID (igual que ADO.NET).
-            // Como la columna "Cliente" ahora coincide con la propiedad "Cliente" de OrdenDto,
-            // Dapper mapea automático sin necesidad de leer filas dinámicas.
             using var connection = new SqlConnection(_connectionString);
 
             var ordenes = await connection.QueryAsync<OrdenDto>(

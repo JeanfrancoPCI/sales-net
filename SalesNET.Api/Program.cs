@@ -20,7 +20,6 @@ builder.Services.AddProblemDetails();
 builder.Services.AddDbContext<SalesBDContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddKeyedScoped<IProductoRepository, ProductoRepositoryAdoNet>("adonet");
 builder.Services.AddKeyedScoped<ICategoriaRepository, CategoriaRepositoryAdoNet>("adonet");
 builder.Services.AddKeyedScoped<ICategoriaRepository, CategoriaRepositoryDapper>("dapper");
 builder.Services.AddKeyedScoped<ICategoriaRepository, CategoriaRepositoryEfCore>("efcore");
@@ -30,6 +29,7 @@ builder.Services.AddKeyedScoped<IClienteRepository, ClienteRepositoryEfCore>("ef
 builder.Services.AddKeyedScoped<IOrdenRepository, OrdenRepositoryAdoNet>("adonet");
 builder.Services.AddKeyedScoped<IOrdenRepository, OrdenRepositoryDapper>("dapper");
 builder.Services.AddKeyedScoped<IOrdenRepository, OrdenRepositoryEfCore>("efcore");
+builder.Services.AddKeyedScoped<IProductoRepository, ProductoRepositoryAdoNet>("adonet");
 builder.Services.AddKeyedScoped<IProductoRepository, ProductoRepositoryDapper>("dapper");
 builder.Services.AddKeyedScoped<IProductoRepository, ProductoRepositoryEfCore>("efcore");
 

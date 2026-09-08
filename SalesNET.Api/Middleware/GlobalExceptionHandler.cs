@@ -14,6 +14,7 @@ namespace SalesNET.Api.Middleware
     ///
     /// No reemplaza el patrón ResultadoOperacion: ese sigue manejando los resultados
     /// de negocio esperados (duplicados, no-existe, etc.) devueltos por los repositorios.
+    /// 
     /// Este handler cubre validaciones de infraestructura (proveedor inválido) y
     /// errores técnicos inesperados que antes se propagaban sin control hasta
     /// convertirse en un 500 genérico de ASP.NET Core.

@@ -1,6 +1,152 @@
 @SalesNET.Api_HostAddress = http://localhost:5091
+@proveedor = adonet
 
-GET {{SalesNET.Api_HostAddress}}/weatherforecast/
+### ===== Categorías =====
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/categorias
 Accept: application/json
 
 ###
+
+POST {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Bebidas",
+  "descripcion": "Bebidas frías y calientes"
+}
+
+###
+
+PUT {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/categorias
+Content-Type: application/json
+
+{
+  "categoriaID": 1,
+  "nombre": "Bebidas",
+  "descripcion": "Bebidas frías y calientes actualizado"
+}
+
+###
+
+DELETE {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/categorias/1
+
+### ===== Clientes =====
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/clientes
+Accept: application/json
+
+###
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/clientes/1
+Accept: application/json
+
+###
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/clientes/1/ordenes
+Accept: application/json
+
+###
+
+POST {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/clientes
+Content-Type: application/json
+
+{
+  "nombre": "Juan Pérez",
+  "email": "juan.perez@correo.com",
+  "telefono": "999999999"
+}
+
+###
+
+PUT {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/clientes
+Content-Type: application/json
+
+{
+  "clienteID": 1,
+  "nombre": "Juan Pérez",
+  "email": "juan.perez@correo.com",
+  "telefono": "988888888"
+}
+
+###
+
+DELETE {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/clientes/1
+
+### ===== Productos =====
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/productos
+Accept: application/json
+
+###
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/productos?categoriaId=1&nombre=cafe
+Accept: application/json
+
+###
+
+POST {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/productos
+Content-Type: application/json
+
+{
+  "nombre": "Café Americano",
+  "precio": 8.50,
+  "categoriaID": 1
+}
+
+###
+
+PUT {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/productos
+Content-Type: application/json
+
+{
+  "productoID": 1,
+  "nombre": "Café Americano",
+  "precio": 9.00,
+  "categoriaID": 1
+}
+
+###
+
+DELETE {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/productos/1
+
+### ===== Órdenes =====
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/ordenes
+Accept: application/json
+
+###
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/ordenes?clienteId=1&fechaInicio=2026-01-01&fechaFin=2026-12-31
+Accept: application/json
+
+###
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/ordenes/1
+Accept: application/json
+
+###
+
+GET {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/ordenes/1/detalles
+Accept: application/json
+
+###
+
+POST {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/ordenes
+Content-Type: application/json
+
+{
+  "clienteID": 1,
+  "detalles": [
+    { "productoID": 1, "cantidad": 2 },
+    { "productoID": 2, "cantidad": 1 }
+  ]
+}
+
+###
+
+PUT {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/ordenes/1/productos/2?cantidad=3
+
+###
+
+DELETE {{SalesNET.Api_HostAddress}}/api/{{proveedor}}/ordenes/1

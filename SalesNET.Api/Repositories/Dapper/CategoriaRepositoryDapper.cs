@@ -49,7 +49,7 @@ namespace SalesNET.Api.Repositories.Dapper
             {
                 Exito = codMensaje == 1,
                 Mensaje = parametros.Get<string?>("@MENSAJE") ?? string.Empty,
-                Data = codMensaje == 1 ? parametros.Get<int?>("@CategoriaID") ?? 0 : 0
+                Data = parametros.Get<int?>("@CategoriaID") ?? 0
             };
         }
 

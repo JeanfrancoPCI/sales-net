@@ -25,7 +25,7 @@ namespace SalesNET.Api.Data
                 entity.HasKey(c => c.CategoriaID);
                 entity.Property(c => c.Nombre).HasMaxLength(100).IsRequired();
                 entity.Property(c => c.Descripcion).HasMaxLength(255);
-                entity.Property(c => c.Activo).HasDefaultValue(true);
+                entity.Property(c => c.Activo).HasDefaultValueSql("1");
                 entity.Property(c => c.FechaCreacion).HasDefaultValueSql("GETDATE()");
             });
 
@@ -35,7 +35,7 @@ namespace SalesNET.Api.Data
                 entity.HasKey(p => p.ProductoID);
                 entity.Property(p => p.Nombre).HasMaxLength(100).IsRequired();
                 entity.Property(p => p.Precio).HasPrecision(10, 2);
-                entity.Property(p => p.Activo).HasDefaultValue(true);
+                entity.Property(p => p.Activo).HasDefaultValueSql("1");
                 entity.Property(p => p.FechaCreacion).HasDefaultValueSql("GETDATE()");
 
                 entity.HasOne(p => p.Categoria)
@@ -50,17 +50,16 @@ namespace SalesNET.Api.Data
                 entity.Property(c => c.Nombre).HasMaxLength(100).IsRequired();
                 entity.Property(c => c.Email).HasMaxLength(100).IsRequired();
                 entity.Property(c => c.Telefono).HasMaxLength(20);
-                entity.Property(c => c.Activo).HasDefaultValue(true);
+                entity.Property(c => c.Activo).HasDefaultValueSql("1");
                 entity.Property(c => c.FechaCreacion).HasDefaultValueSql("GETDATE()");
             });
 
             modelBuilder.Entity<Orden>(entity =>
             {
-                // OJO: la tabla real se llama "Ordenes" (plural), no "Orden".
                 entity.ToTable("Ordenes");
                 entity.HasKey(od => od.OrdenID);
                 entity.Property(od => od.Total).HasPrecision(10, 2);
-                entity.Property(od => od.Activo).HasDefaultValue(true);
+                entity.Property(od => od.Activo).HasDefaultValueSql("1");
                 entity.Property(od => od.FechaCreacion).HasDefaultValueSql("GETDATE()");
 
                 entity.HasOne(p => p.Cliente)

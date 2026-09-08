@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace SalesNET.Tests
 {
+    [Collection("BaseDatosSalesNET")]
     public class GlobalExceptionHandlerTests : IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly HttpClient _client;
@@ -36,19 +37,19 @@ namespace SalesNET.Tests
             _client = appFactory.CreateClient();
         }
 
-        [Theory]
+        [Theory(DisplayName = "Con base de datos inalcanzable: debería responder 503")]
         [InlineData("adonet")]
         [InlineData("dapper")]
         [InlineData("efcore")]
-        public async Task ConBaseDeDatosInalcanzable_DeberiaResponder503(string proveedor)
+        public async Task ConBaseDeDatosInalcanzable_Responde503(string proveedor)
         {
             var response = await _client.GetAsync($"/api/{proveedor}/productos");
 
             response.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
         }
 
-        [Fact]
-        public async Task ConBaseDeDatosInalcanzable_DeberiaResponderConFormatoProblemDetails()
+        [Fact(DisplayName = "Con base de datos inalcanzable: debería responder con formato ProblemDetails")]
+        public async Task ConBaseDeDatosInalcanzable_FormatoProblemDetails()
         {
             var response = await _client.GetAsync("/api/adonet/productos");
 

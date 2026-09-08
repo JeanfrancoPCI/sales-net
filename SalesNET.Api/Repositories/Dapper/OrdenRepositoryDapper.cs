@@ -298,8 +298,6 @@ namespace SalesNET.Api.Repositories.Dapper
 
         public async Task<IEnumerable<OrdenDetalleDto>> ObtenerDetallesOrdenAsync(int ordenId)
         {
-            // Alias como "ProductoNombre" (en vez de "Producto", como en la versión ADO.NET)
-            // para que Dapper mapee automático a la propiedad del DTO sin lectura manual.
             const string query =
                 @"SELECT OD.OrdenDetalleID,
                     OD.ProductoID,

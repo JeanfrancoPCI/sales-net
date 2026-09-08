@@ -298,12 +298,12 @@ namespace SalesNET.Api.Repositories.ADO
 
         public async Task<ResultadoOperacion> EliminarOrdenAsync(int ordenId)
         {
-            const string query = 
-                @"UPDATE Ordenes O
-                SET O.Activo = 0,
-                    O.FechaModificacion = GETDATE()
-                WHERE O.OrdenID = @OrdenId 
-                    AND O.Activo = 1;
+            const string query =
+                @"UPDATE Ordenes
+                SET Activo = 0,
+                    FechaModificacion = GETDATE()
+                WHERE OrdenID = @OrdenId
+                    AND Activo = 1;
                 SET @REGISTROS = @@ROWCOUNT;";
 
             await using var connection = new SqlConnection(_connectionString);
